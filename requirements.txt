@@ -1,0 +1,14 @@
+fastapi
+apscheduler
+uvicorn
+questdb
+paramiko
+jinja2 
+python-multipart
+pandas
+requests
+sqlalchemy 
+aiosqlite
+questdb-connect
+psycopg2
+httpx
