@@ -11,16 +11,6 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DB_FILE = os.path.join(BASE_DIR, "db", "config_schedule.db")
 LOG_SCHEDULE_FILE = os.path.join(BASE_DIR, "logs", "log_schedule.log")
 
-def get_form_data(request):
-    return (
-        request.form['node'],
-        request.form['type'],
-        request.form['ip'],
-        request.form['user'],
-        request.form['password'],
-        request.form['path']
-    )
-
 # --- Config folders ---
 DOWNLOAD_DIR = "downloads"
 LOG_DIR = "logs"
