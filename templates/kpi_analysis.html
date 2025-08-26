@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+<script src="/static/js/echarts.min.js"></script>
+<div class="container">
+  <div class="card mb-3">
+    <div class="card-header">
+      <h2 class="mb-0">📈 KPI Analysis</h2>
+    </div>
+    <div class="card-body">
+      <form class="row g-3 align-items-end">
+        <div class="col-auto">
+          <label for="nodeType" class="form-label">Loại node</label>
+          <select id="nodeType" class="form-select">
+            <option value="MME" selected>MME</option>
+            <option value="PGW">PGW</option>
+            <option value="SBG">SBG</option>
+          </select>
+        </div>
+        <div class="col-auto">
+          <label for="minutes" class="form-label">Khoảng thời gian (phút)</label>
+          <input id="minutes" type="number" class="form-control" value="180" min="5" step="5">
+        </div>
+        <div class="col-auto">
+          <button type="button" id="btnLoad" class="btn btn-primary">Tải dữ liệu</button>
+        </div>
+        <div class="col-auto">
+          <button type="button" id="btnAuto" class="btn btn-outline-secondary">Auto: Off</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!-- Chart grid: 2 cột cố định -->
+<div id="chartsContainer"
+     class="d-grid gap-3"
+     style="grid-template-columns: repeat(2, 1fr);"></div>
+
+<script>
+  const charts = [];
+  let autoTimer = null;
+
+  function pad2(n) {
+    return String(n).padStart(2, '0');
+  }
+
+  function fmtMMDD_HHMM(ms) {
+    const d = new Date(ms);
+    return `${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())} ${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}`;
+  }
+
+  async function fetchData() {
+    const nodeType = document.getElementById("nodeType").value;
+    const minutes  = Number(document.getElementById("minutes").value || 180);
+    const res = await fetch(`/kpi_analysis/api?node_type=${encodeURIComponent(nodeType)}&minutes=${minutes}`);
+    if (!res.ok) {
+      const msg = await res.text();
+      throw new Error(msg || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+
+  function clearCharts() {
+    charts.forEach(c => c.dispose());
+    charts.length = 0;
+    document.getElementById("chartsContainer").innerHTML = "";
+  }
+
+  function renderOneChart(holder, chartObj) {
+    const xMs = chartObj.x.map(sec => sec * 1000);
+    const seriesList = chartObj.series.map((s) => {
+      return {
+        name: s.label,
+        type: 'line',
+        showSymbol: true,
+        symbolSize: 3,
+        connectNulls: true,
+        sampling: 'lttb',
+        lineStyle: {
+          width: 2,
+          type: 'solid',
+          opacity: 1
+        },
+        data: xMs.map((t, i) => {
+          const v = (i < s.data.length) ? s.data[i] : null;
+          return v == null ? [t, null] : [t, Number(v)];
+        })
+      };
+    });
+
+    if (chartObj.threshold && xMs.length) {
+      const thr = Number(chartObj.threshold.data[0]);
+      seriesList.push({
+        name: chartObj.threshold.label,
+        type: 'line',
+        showSymbol: false,
+        connectNulls: true,
+        lineStyle: { width: 1, type: 'dashed' },
+        tooltip: { show: false },
+        data: xMs.map(t => [t, thr])
+      });
+    }
+
+    const opt = {
+      animation: false,
+      grid: { left: 48, right: 12, top: 28, bottom: 36 },
+      legend: { top: 2 },
+      toolbox: {
+        show: true,
+        feature: {
+          dataZoom: { yAxisIndex: 'none' },
+          dataView: { readOnly: false },
+          restore: {},
+          saveAsImage: {}
+        }
+      },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'cross' },
+        valueFormatter: (v) => (v == null ? '--' : Number(v).toFixed(2)),
+        formatter: (params) => {
+          if (!params.length) return '';
+          const t = params[0].axisValue;
+          const time = fmtMMDD_HHMM(t);
+          const lines = params.map(p => {
+            const name = p.seriesName;
+            const val = (p.data && p.data[1] != null) ? Number(p.data[1]).toFixed(2) : '--';
+            return `${name}: ${val}`;
+          });
+          return `<b>${time}</b><br>${lines.join('<br>')}`;
+        }
+      },
+      xAxis: {
+        type: 'time',
+        axisLabel: { formatter: (value) => fmtMMDD_HHMM(value) }
+      },
+      yAxis: { type: 'value', scale: true },
+      series: seriesList
+    };
+
+    const chart = echarts.init(holder);
+    chart.setOption(opt);
+    charts.push(chart);
+    return chart;
+  }
+
+  function renderAll(payload) {
+    clearCharts();
+    const wrap = document.getElementById("chartsContainer");
+    if (!payload.charts || !payload.charts.length) {
+      wrap.innerHTML = `<div class="alert alert-warning">Không có dữ liệu.</div>`;
+      return;
+    }
+
+    payload.charts.forEach(ch => {
+      const card = document.createElement('div');
+      card.className = 'card shadow-sm';
+      const body = document.createElement('div');
+      body.className = 'card-body';
+      const title = document.createElement('div');
+      title.className = 'fw-semibold mb-2';
+      title.textContent = `${ch.kpi}${payload.sample_by ? ' • sample ' + payload.sample_by : ''}`;
+      const holder = document.createElement('div');
+      holder.style.width = '100%';
+      holder.style.height = '260px';
+      body.appendChild(title);
+      body.appendChild(holder);
+      card.appendChild(body);
+      wrap.appendChild(card);
+
+      requestAnimationFrame(() => {
+        const chart = renderOneChart(holder, ch);
+        chart.resize();
+      });
+    });
+  }
+
+  async function loadAll() {
+    try {
+      document.getElementById("btnLoad").disabled = true;
+      const payload = await fetchData();
+      renderAll(payload);
+    } catch (e) {
+      console.error(e);
+      alert("Lỗi tải KPI: " + e.message);
+    } finally {
+      document.getElementById("btnLoad").disabled = false;
+    }
+  }
+
+  document.getElementById("btnLoad").addEventListener("click", loadAll);
+
+  document.getElementById("btnAuto").addEventListener("click", () => {
+    const btn = document.getElementById("btnAuto");
+    if (autoTimer) {
+      clearInterval(autoTimer); autoTimer = null;
+      btn.textContent = "Auto: Off";
+      btn.classList.remove("btn-success");
+      btn.classList.add("btn-outline-secondary");
+    } else {
+      autoTimer = setInterval(loadAll, 15000);
+      btn.textContent = "Auto: On";
+      btn.classList.remove("btn-outline-secondary");
+      btn.classList.add("btn-success");
+    }
+  });
+
+  // ❌ Không tự chạy loadAll() khi mở trang
+</script>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+<h2>📜 Log KPI</h2>
+
+{% if error_msg %}
+<div class="alert alert-danger" role="alert">
+  {{ error_msg }}
+</div>
+{% endif %}
+
+
+<form class="row g-3 mb-3" method="get">
+  <div class="col-auto">
+    <label for="node_type" class="form-label">Node Type</label>
+    <input type="text" id="node_type" name="node_type" value="{{ node_type }}" class="form-control" placeholder="MME/PGW/SBG">
+  </div>
+  <div class="col-auto">
+    <label for="start" class="form-label">Từ ngày</label>
+    <input type="text" id="start" name="start" value="{{ start }}" class="form-control" placeholder="YYYY-MM-DD HH:MM:SS">
+  </div>
+  <div class="col-auto">
+    <label for="end" class="form-label">Đến ngày</label>
+    <input type="text" id="end" name="end" value="{{ end }}" class="form-control" placeholder="YYYY-MM-DD HH:MM:SS">
+  </div>
+  <div class="col-auto">
+    <label for="limit" class="form-label">Số bản ghi</label>
+    <input type="number" id="limit" name="limit" value="{{ limit }}" min="1" max="1000" class="form-control">
+  </div>
+  <div class="col-auto d-flex align-items-end">
+    <button type="submit" class="btn btn-primary">Lọc</button>
+  </div>
+</form>
+
+<div class="table-responsive">
+  <table class="table table-sm table-bordered table-striped table-hover">
+    <thead class="table-dark">
+      <tr>
+        {% for col in cols %}
+          <th>{{ col }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          {% for cell in row %}
+            <td>{{ cell }}</td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+</div>
+{% endblock %}

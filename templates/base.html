@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ title or "SNOC" }}</title>
+  <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid px-4">
+    <a class="navbar-brand" href="#">📊SNOC</a>
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="/LogKPI">LogKPI</a></li>
+        <li class="nav-item"><a class="nav-link" href="/kpi_analysis">KPI_Analysis</a></li>
+        <li class="nav-item"><a class="nav-link" href="/log_schedule">LogSchedule</a></li>
+        
+        <li class="nav-item"><a class="nav-link" href="/config">ConfigNode</a></li>
+		<li class="nav-item"><a class="nav-link" href="/config_nguong">Ngưỡng KPI</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid mt-4">
+  {% block content %}{% endblock %}
+</div>
+<script src="/static/bootstrap/js/bootstrap.bundle.min.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h1>🛠 Quản lý Node</h1>
+
+  <!-- Nút mở modal Thêm -->
+  <button class="btn btn-primary mb-3" onclick="openModal()">➕ Thêm Node</button>
+
+  <!-- Modal Thêm/Sửa Node -->
+  <div class="modal fade" id="modalConfig" tabindex="-1">
+    <div class="modal-dialog">
+      <form method="post" action="/config/add_or_update" class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalTitle">➕ Thêm Config Node</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="id" id="nodeId">
+
+          <div class="mb-3">
+            <input name="node"      id="nodeName"     class="form-control" placeholder="Node"    required>
+          </div>
+          <div class="mb-3">
+            <select name="type"     id="nodeType"     class="form-select"   required>
+              <option value="">Chọn loại node</option>
+              {% for t in ['MME','MSS','TSS','PGW','SBG'] %}
+              <option value="{{ t }}">{{ t }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <input name="ip"        id="nodeIp"       class="form-control" placeholder="IP"      required>
+          </div>
+          <div class="mb-3">
+            <input name="user"      id="nodeUser"     class="form-control" placeholder="User"    required>
+          </div>
+          <div class="mb-3">
+            <input name="password"  id="nodePassword" type="password" class="form-control" placeholder="Password" required>
+          </div>
+          <div class="mb-3">
+            <input name="path"      id="nodePath"     class="form-control" placeholder="Path"    required>
+          </div>
+
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="nodeStatus" name="status">
+            <label class="form-check-label" for="nodeStatus">Active</label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Lưu</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Bảng hiển thị Node -->
+  <table class="table table-bordered table-hover table-striped">
+    <thead class="table-dark">
+      <tr>
+        <th>Node</th><th>Type</th><th>IP</th><th>User</th><th>Path</th><th>Status</th><th>Hành động</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ row[1] }}</td>
+        <td>{{ row[2] }}</td>
+        <td>{{ row[3] }}</td>
+        <td>{{ row[4] }}</td>
+        <td>{{ row[6] }}</td>
+        <td>
+          {% if row[7] == 1 %}
+            <span class="badge bg-success">Active</span>
+          {% else %}
+            <span class="badge bg-secondary">Inactive</span>
+          {% endif %}
+        </td>
+        <td>
+          <!-- Edit: truyền luôn giá trị status -->
+          <button
+            class="btn btn-warning btn-sm"
+            onclick="openModal(
+              {{row[0]}},
+              '{{row[1]}}','{{row[2]}}','{{row[3]}}','{{row[4]}}','{{row[5]}}','{{row[6]}}',
+              {{ row[7] }}
+            )"
+          >✏️</button>
+          <a href="/config/delete/{{ row[0] }}" class="btn btn-danger btn-sm">❌</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+// Mở modal, nếu có id thì sửa, không thì thêm mới
+function openModal(id, node, type, ip, user, password, path, status) {
+  document.getElementById('modalTitle').innerText = id ? '✏️ Sửa Config Node' : '➕ Thêm Config Node';
+  document.getElementById('nodeId').value       = id || '';
+  document.getElementById('nodeName').value     = node || '';
+  document.getElementById('nodeType').value     = type || '';
+  document.getElementById('nodeIp').value       = ip || '';
+  document.getElementById('nodeUser').value     = user || '';
+  document.getElementById('nodePassword').value = password || '';
+  document.getElementById('nodePath').value     = path || '';
+  document.getElementById('nodeStatus').checked = status === 1;
+
+  new bootstrap.Modal(document.getElementById('modalConfig')).show();
+}
+</script>
+{% endblock %}
