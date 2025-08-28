@@ -1,22 +1,28 @@
-# 📊 DB_NOC  
-DashBoard KPI / ALARM  
+📊 DB_NOC
 
-## 🔹 Giới thiệu
-DB_NOC là hệ thống Dashboard để thu thập, lưu trữ và hiển thị KPI/ALARM của NOC.  
-Project sử dụng **Python (FastAPI)** làm backend và **QuestDB/SQLite** để lưu trữ dữ liệu dạng time-series.  
+DashBoard KPI / ALARM
 
----
+🔹 Giới thiệu
 
-## 🔹 Yêu cầu hệ thống
-- Python 3.10+ (khuyến nghị 3.12)  
-- QuestDB (>= 9.0.2)  
-- pip + virtualenv (khuyến nghị)  
+DB_NOC là hệ thống Dashboard để thu thập, lưu trữ và hiển thị KPI / ALARM của NOC.
+Project sử dụng Python (FastAPI) làm backend/frontend và QuestDB / SQLite để lưu trữ dữ liệu dạng time-series.
 
----
+🔹 Yêu cầu hệ thống
 
-## 🔹 Cài đặt
+Python 3.10+ (khuyến nghị 3.12)
 
-### 1️⃣ Clone project
-```bash
+QuestDB >= 9.0.2
+
+pip + virtualenv (khuyến nghị)
+
+🔹 Cài đặt
+1️⃣ Clone project
 git clone https://github.com/qtuan242/DB_NOC.git
-cd db_noc
+cd DB_NOC
+
+2️⃣ Tạo môi trường ảo & kích hoạt
+
+Linux / macOS
+
+python3 -m venv venv
+source venv/bin/activate
